@@ -6681,6 +6681,34 @@ class PipelinePropertyWdg(BaseRefreshWdg):
         th.add(" hours")
 
         tr, td = table.add_row_cell()
+
+        # disable task creation
+        table.add_row()
+        td = table.add_cell('Disable task creation:')
+        td.add_attr("title", "If this option is enabled, this node will not create a task.")
+
+        checkbox_name = "spt_property_disable_task_creation"
+        checkbox = CheckboxWdg(checkbox_name)
+        self.add_session_behavior(checkbox, "checkbox", "spt_pipeline_properties_top", checkbox_name)
+
+        th = table.add_cell(checkbox)
+
+        tr, td = table.add_row_cell()
+
+        # auto-create task
+        table.add_row()
+        td = table.add_cell('Auto-create task:')
+        td.add_attr("title", "If enabled, this node will automatically create a task.")
+
+        checkbox_name = "spt_property_auto_create_task"
+        checkbox = CheckboxWdg(checkbox_name)
+        self.add_session_behavior(checkbox, "checkbox", "spt_pipeline_properties_top", checkbox_name)
+
+        th = table.add_cell(checkbox)
+
+        tr, td = table.add_row_cell()
+
+
         td.add("<hr/>")
         
         # Color
@@ -6835,8 +6863,8 @@ class PipelinePropertyWdg(BaseRefreshWdg):
             var top = bvr.src_el.getParent("."+bvr.top_class);
             var input = spt.api.get_input_values(top, null, false);
 
-            var value = true;
-            if (input[bvr.arg_name] == "off") value = false;
+            var value = false;
+            if (input[bvr.arg_name] == "on") value = true;
 
             var node = spt.pipeline.get_info_node();
             spt.pipeline.set_node_kwarg(node, bvr.arg_name, value);
