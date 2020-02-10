@@ -730,7 +730,7 @@ class AddPredefinedColumnWdg(BaseRefreshWdg):
         }
 
 
-    def get_columns_wdg(self, title, element_names, is_open=False):
+    def get_columns_wdg(self, title, element_names, is_open=False, edit=False):
 
         # hardcode to insert at 3, this will be overridden on client side
         widget_idx = 3
@@ -976,7 +976,8 @@ class AddPredefinedColumnWdg(BaseRefreshWdg):
             elements_wdg.add(menu_item_container)
             menu_item_container.add(menu_item)
 
-            if (self.kwargs.get("edit") in ['true', True]) and (element_name not in static_elements):
+            if (edit in ['true', True]) and (element_name not in static_elements):
+
                 button = IconButtonWdg(name="Edit", icon="FA_EDIT")
                 menu_item_container.add(button)
                 button.add_behavior( {
@@ -1214,20 +1215,45 @@ class AddPredefinedColumnWdg(BaseRefreshWdg):
         # remove duplicate elements
         self.all_element_names = list(set(self.all_element_names))
 
+        edit = self.kwargs.get("edit") in [True, "true"]
         if self.all_element_names:
             self.all_element_names.sort()
             title = 'Columns'
-            context_menu.add( self.get_columns_wdg(title, self.all_element_names, is_open=True) )
+            context_menu.add( self.get_columns_wdg(title, self.all_element_names, is_open=True, edit=edit) )
 
         else:
             defined_element_names.sort()
             title = 'Columns'
-            context_menu.add( self.get_columns_wdg(title, defined_element_names, is_open=True) )
+            context_menu.add( self.get_columns_wdg(title, defined_element_names, is_open=True, edit=edit) )
 
 
 
 
+        # add custom elements for the job
+        if search_type == "workflow/job":
+            search = Search("workflow/job_type")
+            job_types = search.get_sobjects()
 
+            for job_type in job_types:
+                data = job_type.get_json_value("data") or {}
+                if isinstance(data, six.string_types):
+                    data = jsonloads(data)
+                form_extra_data = data.get("form_extra_data") or {}
+                if not form_extra_data:
+                    continue
+                if isinstance(form_extra_data, six.string_types):
+                    form_extra_data = jsonloads(form_extra_data)
+                components = form_extra_data.get("components") or []
+                job_type_elements = []
+                for component in components:
+                    component_type = component.get("type")
+                    if component_type in ['button','signature','columns']:
+                        continue
+                    label = component.get("label")
+                    key = component.get("key")
+                    job_type_elements.append(key)
+                if job_type_elements:
+                    context_menu.add( self.get_columns_wdg(job_type.get_value("name"), job_type_elements))
 
         # Add predefined columns
 
